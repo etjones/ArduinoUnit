@@ -1,3 +1,23 @@
+/*
+Copyright (c) 2009 Matthew Murdoch
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*/
 #include "TestSuite.h"
 
 #include "Test.h"
@@ -5,6 +25,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 struct TestLink {
     Test test;
@@ -13,10 +34,8 @@ struct TestLink {
 
 TestSuite* TestSuite::activeSuite = NULL;
 
-TestSuite::TestSuite(const char* nameToCopy) :
+TestSuite::TestSuite() :
     head(NULL), completed(false) {
-    name = (char*) malloc((strlen(nameToCopy) + 1) * sizeof(char));
-    strcpy(name, nameToCopy);
 
     TestSuite::setActiveSuite(*this);
 
@@ -30,8 +49,6 @@ TestSuite::~TestSuite() {
         free(current);
         current = next;
     }
-
-    free(name);
 }
 
 bool TestSuite::isActiveSuite() {
@@ -58,7 +75,8 @@ void TestSuite::add(const char* name, void (*testFunction)(Test&)) {
     TestLink* newLink = (TestLink*) malloc(sizeof(TestLink));
     newLink->test.testFunction = testFunction;
     newLink->test.name = name;
-    newLink->test.successful = false;
+    // Default to true so that a test with no assertions doesn't cause failure
+    newLink->test.successful = true;
     newLink->next = NULL;
 
     TestLink** newTail;
@@ -128,17 +146,38 @@ bool TestSuite::hasCompleted() const {
     return completed;
 }
 
+int adjustLineNumber(int lineNumber) {
+    // Adjust line number to cater for extra lines added to
+    // sketch during compilation
+    return lineNumber - 3;
+}
+
 void TestSuite::suiteAssertTrue(Test& test, bool condition, int lineNumber) {
     test.successful = condition;
+
     if (!condition) {
-        // Adjust line number to cater for extra lines added to
-        // sketch during compilation
-        reportFailure(test, lineNumber-3);
+        reportFailure(test, adjustLineNumber(lineNumber));
+    }
+}
+
+void TestSuite::suiteAssertEquals(Test& test, int expected, int actual, int lineNumber) {
+    bool areEqual = (expected == actual);
+    test.successful = areEqual;
+    if (!areEqual) {
+        reportEqualityFailure(test, adjustLineNumber(lineNumber), expected, actual);
     }
 }
 
 void TestSuite::reportFailure(const Test& test, int lineNumber) const {
     reporter->reportFailure(test, lineNumber);
+}
+
+void TestSuite::reportEqualityFailure(const Test& test, int lineNumber, int expected, int actual) const {
+    char expectedBuffer[11];
+    char actualBuffer[11];
+    sprintf(expectedBuffer, "%d", expected);
+    sprintf(actualBuffer, "%d", actual);
+    reporter->reportEqualityFailure(test, lineNumber, expectedBuffer, actualBuffer);
 }
 
 void TestSuite::reportComplete() const {
