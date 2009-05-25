@@ -1,6 +1,6 @@
 Create a directory called ArduinoUnit under <arduino installation directory>\hardware\libraries.
 
-Copy all the files to this new directory.
+Copy all the files from the src directory to this new directory.
 
 Open a sketch in arduino and click Sketch | Import Library | ArduinoUnit to start unit testing.
 
