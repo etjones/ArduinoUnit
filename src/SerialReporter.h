@@ -37,7 +37,7 @@ public:
      */
     SerialReporter(int baudRate = 9600);
 
-    void begin();
+    void begin(const char* name);
 
     void reportFailure(const Test& test, int lineNumber);
 

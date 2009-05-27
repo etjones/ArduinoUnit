@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #ifndef ARDUINO_UNIT_H
 #define ARDUINO_UNIT_H
 
+#include "Test.h"
 #include "TestSuite.h"
 #include "SuiteAppender.h"
 
@@ -51,18 +52,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * @param condition boolean condition to check
  */
 #define assertTrue(condition)\
-    assertTrueInSuite((condition), TestSuite::getActiveSuite())
-
-/**
- * Asserts that a condition is true.
- * If the condition is false the test function ends prematurely
- * and further assertions are not checked.
- *
- * @param condition boolean condition to check
- * @param suite test suite in which to assert condition
- */
-#define assertTrueInSuite(condition, suite)\
-    suite.suiteAssertTrue(test, (condition), __LINE__);\
+    test.suite->suiteAssertTrue(test, (condition), __LINE__);\
     if (!(condition)) {\
         return;\
     }
@@ -76,19 +66,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * @param actual actual value
  */
 #define assertEquals(expected, actual)\
-    assertEqualsInSuite((expected), (actual), TestSuite::getActiveSuite());
-
-/**
- * Asserts that two values are equal.
- * If the values differ the test function ends prematurely
- * and further assertions are not checked.
- *
- * @param expected expected value
- * @param actual actual value
- * @param suite test suite in which to assert condition
- */
-#define assertEqualsInSuite(expected, actual, suite)\
-    suite.suiteAssertEquals(test, (expected), (actual), __LINE__);\
+    test.suite->suiteAssertEquals(test, (expected), (actual), __LINE__);\
     if ((expected) != (actual)) {\
         return;\
     }

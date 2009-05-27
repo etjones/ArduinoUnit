@@ -21,12 +21,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #ifndef TEST_H
 #define TEST_H
 
+class TestSuite;
+
 /**
  * A test.
  *
  * @author Matthew Murdoch
  */
 struct Test {
+    TestSuite* suite;
     void (*testFunction)(Test&);
     const char* name;
     bool successful;

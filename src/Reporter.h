@@ -38,8 +38,10 @@ public:
 
     /**
      * Initializes this reporter.
+     *
+     * @param name name of test suite on which to report
      */
-    virtual void begin() = 0;
+    virtual void begin(const char* name) = 0;
 
     /**
      * Reports on a test failure.

@@ -23,15 +23,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 
 class NonReportingReporter : public Reporter {
 public:
-    void begin() { }
-    void reportFailure(const Test& test, int lineNumber) { }
-    void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual) { }
-    void reportComplete(const TestSuite& suite) { }
+    void begin(const char* /*name*/) { }
+    void reportFailure(const Test& /*test*/, int /*lineNumber*/) { }
+    void reportEqualityFailure(const Test& /*test*/, int /*lineNumber*/, const char* /*expected*/, const char* /*actual*/) { }
+    void reportComplete(const TestSuite& /*suite*/) { }
 };
 
 NonReportingReporter nonReportingReporter;
 
-TestSuite suite;
+TestSuite suite("main");
 
 void setup() {
 }
@@ -45,28 +45,28 @@ void runSuite(TestSuite& aSuite) {
     aSuite.run();
 }
 
-TestSuite empty;
+TestSuite empty("empty");
 
 testInSuite(emptySuite, suite) {
     runSuite(empty);
-    assertEqualsInSuite(0, empty.getTestCount(), suite);
-    assertEqualsInSuite(0, empty.getSuccessCount(), suite);
-    assertEqualsInSuite(0, empty.getFailureCount(), suite);
+    assertEquals(0, empty.getTestCount());
+    assertEquals(0, empty.getSuccessCount());
+    assertEquals(0, empty.getFailureCount());
 }
 
-TestSuite noAssertions;
+TestSuite noAssertions("noAssertions");
 
 test(noAssertions) {
 }
 
 testInSuite(singleTestNoAssertions, suite) {
     runSuite(noAssertions);
-    assertEqualsInSuite(1, noAssertions.getTestCount(), suite);
-    assertEqualsInSuite(1, noAssertions.getSuccessCount(), suite);
-    assertEqualsInSuite(0, noAssertions.getFailureCount(), suite);
+    assertEquals(1, noAssertions.getTestCount());
+    assertEquals(1, noAssertions.getSuccessCount());
+    assertEquals(0, noAssertions.getFailureCount());
 }
 
-TestSuite singleSuccessfulAssertion;
+TestSuite singleSuccessfulAssertion("singleSuccessfulAssertion");
 
 test(singleSuccessful) {
     assertTrue(true);
@@ -74,12 +74,12 @@ test(singleSuccessful) {
 
 testInSuite(singleSuccessfulAssertion, suite) {
     runSuite(singleSuccessfulAssertion);
-    assertEqualsInSuite(1, singleSuccessfulAssertion.getTestCount(), suite);
-    assertEqualsInSuite(1, singleSuccessfulAssertion.getSuccessCount(), suite);
-    assertEqualsInSuite(0, singleSuccessfulAssertion.getFailureCount(), suite);
+    assertEquals(1, singleSuccessfulAssertion.getTestCount());
+    assertEquals(1, singleSuccessfulAssertion.getSuccessCount());
+    assertEquals(0, singleSuccessfulAssertion.getFailureCount());
 }
 
-TestSuite singleFailingAssertion;
+TestSuite singleFailingAssertion("singleFailingAssertion");
 
 test(singleFailing) {
     assertTrue(false);
@@ -87,7 +87,21 @@ test(singleFailing) {
 
 testInSuite(singleFailingAssertion, suite) {
     runSuite(singleFailingAssertion);
-    assertEqualsInSuite(1, singleFailingAssertion.getTestCount(), suite);
-    assertEqualsInSuite(0, singleFailingAssertion.getSuccessCount(), suite);
-    assertEqualsInSuite(1, singleFailingAssertion.getFailureCount(), suite);
+    assertEquals(1, singleFailingAssertion.getTestCount());
+    assertEquals(0, singleFailingAssertion.getSuccessCount());
+    assertEquals(1, singleFailingAssertion.getFailureCount());
+}
+
+TestSuite failBeforeSuccessFails("failBeforeSuccessFails");
+
+test(failBeforeSuccess) {
+    assertTrue(false);
+    assertTrue(true);
+}
+
+testInSuite(failBeforeSuccessFails, suite) {
+    runSuite(failBeforeSuccessFails);
+    assertEquals(1, failBeforeSuccessFails.getTestCount());
+    assertEquals(0, failBeforeSuccessFails.getSuccessCount());
+    assertEquals(1, failBeforeSuccessFails.getFailureCount());
 }

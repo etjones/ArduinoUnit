@@ -35,8 +35,10 @@ public:
     /**
      * Creates a test suite and sets it as the active suite if there is no
      * currently active suite.
+     *
+     * @param name the name of this test suite (optional, defaults to empty string)
      */
-    TestSuite();
+    TestSuite(const char* name = "");
 
     /**
      * Destroys this test suite.
@@ -64,6 +66,13 @@ public:
      * @param suite active test suite to set
      */
     static void setActiveSuite(TestSuite& suite);
+
+    /**
+     * Returns the name of this test suite.
+     *
+     * @return test suite name
+     */
+    const char* getName() const;
 
     /**
      * Returns the reporter which reports on the outcome of this suite.

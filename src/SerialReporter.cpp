@@ -30,8 +30,15 @@ SerialReporter serialReporter;
 SerialReporter::SerialReporter(int baud) : baudRate(baud) {
 }
 
-void SerialReporter::begin() {
+void SerialReporter::begin(const char* name) {
     Serial.begin(baudRate);
+    Serial.print("Running test suite");
+    if (name[0] != 0) {
+        Serial.print(" '");
+        Serial.print(name);
+        Serial.print("'");
+    }
+    Serial.println("...");
 }
 
 void SerialReporter::reportFailure(const Test& test, int lineNumber) {

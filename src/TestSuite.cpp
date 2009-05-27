@@ -34,8 +34,11 @@ struct TestLink {
 
 TestSuite* TestSuite::activeSuite = NULL;
 
-TestSuite::TestSuite() :
+TestSuite::TestSuite(const char* nameToCopy) :
     head(NULL), completed(false) {
+
+    name = (char*) malloc(sizeof(char) * (strlen(nameToCopy)+1));
+    strcpy(name, nameToCopy);
 
     TestSuite::setActiveSuite(*this);
 
@@ -63,6 +66,10 @@ void TestSuite::setActiveSuite(TestSuite& suite) {
     TestSuite::activeSuite = &suite;
 }
 
+const char* TestSuite::getName() const {
+    return name;
+}
+
 Reporter& TestSuite::getReporter() const {
     return *reporter;
 }
@@ -73,6 +80,7 @@ void TestSuite::setReporter(Reporter& reporter_) {
 
 void TestSuite::add(const char* name, void (*testFunction)(Test&)) {
     TestLink* newLink = (TestLink*) malloc(sizeof(TestLink));
+    newLink->test.suite = this;
     newLink->test.testFunction = testFunction;
     newLink->test.name = name;
     // Default to true so that a test with no assertions doesn't cause failure
@@ -129,7 +137,7 @@ void TestSuite::run() {
         return;
     }
 
-    reporter->begin();
+    reporter->begin(name);
 
     TestLink* current = head;
     while (current != NULL) {
