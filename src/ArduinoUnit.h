@@ -21,9 +21,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #ifndef ARDUINO_UNIT_H
 #define ARDUINO_UNIT_H
 
-#include "Test.h"
-#include "TestSuite.h"
-#include "SuiteAppender.h"
+#include "utility/Test.h"
+#include "utility/TestSuite.h"
+#include "utility/SuiteAppender.h"
 
 /**
  * Defines a test function in the active test suite.

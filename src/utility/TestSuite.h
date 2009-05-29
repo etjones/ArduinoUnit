@@ -150,33 +150,12 @@ public:
     void suiteAssertEquals(Test& test, int first, int second, int lineNumber);
 
 private:
-    /**
-     * Reports on a test failure within this suite via the attached Reporter.
-     *
-     * @param test failing test
-     * @param lineNumber line number on which test failed
-     */
-    void reportFailure(const Test& test, int lineNumber) const;
-
-    /**
-     * Reports on an equality test failure within this suite via the attached Reporter.
-     *
-     * @param test failing test
-     * @param lineNumber line number on which test failed
-     * @param expected expected value
-     * @param actual actual value
-     */
-    void reportEqualityFailure(const Test& test, int lineNumber, int expected, int actual) const;
-
-    /**
-     * Reports on the outcome of this suite via the attached Reporter.
-     */
-    void reportComplete() const;
-
     static TestSuite* activeSuite;
 
     char* name;
     TestLink* head;
+    int successCount;
+    int failureCount;
     bool completed;
     Reporter* reporter;
 };

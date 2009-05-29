@@ -35,7 +35,7 @@ struct TestLink {
 TestSuite* TestSuite::activeSuite = NULL;
 
 TestSuite::TestSuite(const char* nameToCopy) :
-    head(NULL), completed(false) {
+    head(NULL), successCount(0), failureCount(0), completed(false) {
 
     name = (char*) malloc(sizeof(char) * (strlen(nameToCopy)+1));
     strcpy(name, nameToCopy);
@@ -99,36 +99,18 @@ void TestSuite::add(const char* name, void (*testFunction)(Test&)) {
     }
 
     *newTail = newLink;
+    successCount++;
 }
 
 int TestSuite::getTestCount() const {
-    int testCount = 0;
-
-    TestLink* current = head;
-    while (current != NULL) {
-        testCount++;
-        current = current->next;
-    }
-
-    return testCount;
+    return successCount + failureCount;
 }
 
 int TestSuite::getFailureCount() const {
-    return getTestCount() - getSuccessCount();
+    return failureCount;
 }
 
 int TestSuite::getSuccessCount() const {
-    int successCount = 0;
-
-    TestLink* current = head;
-    while (current != NULL) {
-        if (current->test.successful) {
-            successCount++;
-        }
-
-        current = current->next;
-    }
-
     return successCount;
 }
 
@@ -147,7 +129,7 @@ void TestSuite::run() {
 
     completed = true;
 
-    reportComplete();
+    reporter->reportComplete(*this);
 }
 
 bool TestSuite::hasCompleted() const {
@@ -164,7 +146,9 @@ void TestSuite::suiteAssertTrue(Test& test, bool condition, int lineNumber) {
     test.successful = condition;
 
     if (!condition) {
-        reportFailure(test, adjustLineNumber(lineNumber));
+        successCount--;
+        failureCount++;
+        reporter->reportFailure(test, lineNumber);
     }
 }
 
@@ -172,22 +156,12 @@ void TestSuite::suiteAssertEquals(Test& test, int expected, int actual, int line
     bool areEqual = (expected == actual);
     test.successful = areEqual;
     if (!areEqual) {
-        reportEqualityFailure(test, adjustLineNumber(lineNumber), expected, actual);
+        successCount--;
+        failureCount++;
+        char expectedBuffer[11];
+        char actualBuffer[11];
+        sprintf(expectedBuffer, "%d", expected);
+        sprintf(actualBuffer, "%d", actual);
+        reporter->reportEqualityFailure(test, adjustLineNumber(lineNumber), expectedBuffer, actualBuffer);
     }
-}
-
-void TestSuite::reportFailure(const Test& test, int lineNumber) const {
-    reporter->reportFailure(test, lineNumber);
-}
-
-void TestSuite::reportEqualityFailure(const Test& test, int lineNumber, int expected, int actual) const {
-    char expectedBuffer[11];
-    char actualBuffer[11];
-    sprintf(expectedBuffer, "%d", expected);
-    sprintf(actualBuffer, "%d", actual);
-    reporter->reportEqualityFailure(test, lineNumber, expectedBuffer, actualBuffer);
-}
-
-void TestSuite::reportComplete() const {
-    reporter->reportComplete(*this);
 }
