@@ -16,7 +16,7 @@ For example, try this simple unit testing sketch:
 
     // Create a test called 'addition' in the test suite
     test(addition) {
-        assertTrue((1 + 2) == 3);
+        assertEquals(3, 1 + 2);
     }
 
     void loop() {
@@ -138,6 +138,10 @@ Version 1.3 (01 June 2009)
             }    
           ) verifying or uploading the sketch will cause the following compilation error:
             error: declaration of 'int __test__' shadows a parameter
+            
+        Added keyword highlighting for 'TestSuite', 'run', 'test', 'assertTrue', 'assertEquals' 
+          and '__test__'.
+
     Bugs fixed:
         Line numbers of failing boolean assertions (assertTrue()) are 3 greater than the real
         line numbers (line numbers reported for failing equality assertions are correct)
