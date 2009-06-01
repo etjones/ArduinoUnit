@@ -148,7 +148,7 @@ void TestSuite::suiteAssertTrue(Test& test, bool condition, int lineNumber) {
     if (!condition) {
         successCount--;
         failureCount++;
-        reporter->reportFailure(test, lineNumber);
+        reporter->reportFailure(test, adjustLineNumber(lineNumber));
     }
 }
 

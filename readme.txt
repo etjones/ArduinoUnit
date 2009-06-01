@@ -32,8 +32,115 @@ Turn on the Serial Monitor (using the 'Serial Monitor' button) and expect to see
     Running test suite...
     Tests run: 1 Successful: 1 Failed: 0
 
+FAQ
+---
+
+1. Q. I'm getting an error message like:
+          1: error: pasting "test_" and ""something"" does not give a valid preprocessing token
+        when I 'Verify' or 'Upload to I/O Board' my sketch. How can I fix this?
+
+   A. You have declared a test like this with the name in quotes:
+
+          test("something") {
+              // ...
+          }
+
+      The name of the test must not be quoted. i.e. it should look like this:
+
+          test(something) {
+              // ...
+          }
+
+2. Q. I'm getting an error message like:
+          error: redefinition of 'SuiteAppender test_a_appender' In function 'void test_a(Test&)':
+        when I 'Verify' or 'Upload to I/O Board' my sketch. How can I fix this?
+
+   A. You have two or more tests declared with the same name. For example:
+
+          test(a) {
+              // ...
+          }
+          
+          test(a) {
+              // ...
+          }
+
+      The names of all tests in the same sketch must be unique. This is true even if they are in 
+         different test suites.
+
+3. Q. I'm trying to write a custom assertion function but I keep getting an error message like:
+          error: '__test__' was not declared in this scope
+        when I 'Verify' or 'Upload to I/O Board' my sketch. How can I fix this?
+
+   A. You have probably defined a custom assertion function such as the following:
+
+          void assertStringsEqual(const char* expected, const char* actual) {
+              assertEquals(strlen(expected), strlen(actual));
+              for (int i = 0; i < strlen(expected); i++) {
+                  assertEquals(expected[i], actual[i]);
+              }
+          }
+          
+      and are trying to use it like this from within a test function:
+       
+          assertStringsEqual("expected string", actualString);
+          
+      To fix this you need to add a 'Test& __test__' parameter to the signature of the custom 
+      assertion function, for example:
+      
+          void assertStringsEqual(Test& __test__, const char* expected, const char* actual) {
+              assertEquals(strlen(expected), strlen(actual));
+              for (int i = 0; i < strlen(expected); i++) {
+                  assertEquals(expected[i], actual[i]);
+              }
+          }
+
+      and add '__test__' as the relevant argument when you call it, for example:
+      
+          assertStringsEqual(__test__, "expected string", actualString);
+
+4. Q. I'm trying to use a custom assertion function but I keep getting an error message like:
+          error: '<custom_assertion_function>' was not declared in this scope
+        when I 'Verify' or 'Upload to I/O Board' my sketch. How can I fix this?
+
+   A. You need to define the custom assertion function above where it is being used or 
+        forward-declare it, for example:
+        
+          // Forward declare custom assertion
+          void assertStringsEqual(Test& __test__, const char* expected, const char* actual);
+
+          // ...
+          
+          test(something) {
+              // Use custom assertion
+              assertStringsEqual(__test__, "expected string", actualString);
+          }
+          
+          // ...
+
+          // Define custom assertion
+          void assertStringsEqual(Test& __test__, const char* expected, const char* actual) {
+              assertEquals(strlen(expected), strlen(actual));
+              for (int i = 0; i < strlen(expected); i++) {
+                  assertEquals(expected[i], actual[i]);
+              }
+          }
+
 Version History
 ---------------
+
+Version 1.3 (01 June 2009)
+    Features added:
+        Allowed the use of variables named 'test' in test functions. The name __test__ is now a 
+          reserved word and if used as a variable name within a test function (e.g. like this:
+            test(name) {
+                int __test__ = 0;
+            }    
+          ) verifying or uploading the sketch will cause the following compilation error:
+            error: declaration of 'int __test__' shadows a parameter
+    Bugs fixed:
+        Line numbers of failing boolean assertions (assertTrue()) are 3 greater than the real
+        line numbers (line numbers reported for failing equality assertions are correct)
 
 Version 1.2 (29 May 2009)
     Features added:

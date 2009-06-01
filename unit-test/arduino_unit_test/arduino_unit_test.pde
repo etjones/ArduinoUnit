@@ -21,6 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #include <ArduinoUnit.h>
 #include <utility/Reporter.h>
 
+void assertStringsEqual(Test& __test__, const char* expected, const char* actual);
+
 class NonReportingReporter : public Reporter {
 public:
     void begin(const char* /*name*/) { }
@@ -49,6 +51,7 @@ TestSuite empty("empty");
 
 testInSuite(emptySuite, suite) {
     runSuite(empty);
+
     assertEquals(0, empty.getTestCount());
     assertEquals(0, empty.getSuccessCount());
     assertEquals(0, empty.getFailureCount());
@@ -61,6 +64,7 @@ test(noAssertions) {
 
 testInSuite(singleTestNoAssertions, suite) {
     runSuite(noAssertions);
+
     assertEquals(1, noAssertions.getTestCount());
     assertEquals(1, noAssertions.getSuccessCount());
     assertEquals(0, noAssertions.getFailureCount());
@@ -74,6 +78,7 @@ test(singleSuccessful) {
 
 testInSuite(singleSuccessfulAssertion, suite) {
     runSuite(singleSuccessfulAssertion);
+
     assertEquals(1, singleSuccessfulAssertion.getTestCount());
     assertEquals(1, singleSuccessfulAssertion.getSuccessCount());
     assertEquals(0, singleSuccessfulAssertion.getFailureCount());
@@ -87,6 +92,7 @@ test(singleFailing) {
 
 testInSuite(singleFailingAssertion, suite) {
     runSuite(singleFailingAssertion);
+
     assertEquals(1, singleFailingAssertion.getTestCount());
     assertEquals(0, singleFailingAssertion.getSuccessCount());
     assertEquals(1, singleFailingAssertion.getFailureCount());
@@ -101,9 +107,185 @@ test(failBeforeSuccess) {
 
 testInSuite(failBeforeSuccessFails, suite) {
     runSuite(failBeforeSuccessFails);
+
     assertEquals(1, failBeforeSuccessFails.getTestCount());
     assertEquals(0, failBeforeSuccessFails.getSuccessCount());
     assertEquals(1, failBeforeSuccessFails.getFailureCount());
 }
 
+TestSuite singleSuccessfulEqualityAssertion("singleSuccessfulEqualityAssertion");
 
+test(singleSuccessfulEquality) {
+    assertEquals(15, 15);
+}
+
+testInSuite(singleSuccessfulEqualityAssertion, suite) {
+    runSuite(singleSuccessfulEqualityAssertion);
+
+    assertEquals(1, singleSuccessfulEqualityAssertion.getTestCount());
+    assertEquals(1, singleSuccessfulEqualityAssertion.getSuccessCount());
+    assertEquals(0, singleSuccessfulEqualityAssertion.getFailureCount());
+}
+
+TestSuite singleFailingEqualityAssertion("singleFailingEqualityAssertion");
+
+test(singleFailingEquality) {
+    assertEquals(0, 1);
+}
+
+testInSuite(singleFailingEqualityAssertion, suite) {
+    runSuite(singleFailingEqualityAssertion);
+
+    assertEquals(1, singleFailingEqualityAssertion.getTestCount());
+    assertEquals(0, singleFailingEqualityAssertion.getSuccessCount());
+    assertEquals(1, singleFailingEqualityAssertion.getFailureCount());
+}
+
+TestSuite equalityFailBeforeSuccessFails("equalityFailBeforeSuccessFails");
+
+test(equalityFailBeforeSuccess) {
+    assertEquals(87, 88);
+    assertEquals(16, 16);
+}
+
+testInSuite(equalityFailBeforeSuccessFails, suite) {
+    runSuite(equalityFailBeforeSuccessFails);
+
+    assertEquals(1, equalityFailBeforeSuccessFails.getTestCount());
+    assertEquals(0, equalityFailBeforeSuccessFails.getSuccessCount());
+    assertEquals(1, equalityFailBeforeSuccessFails.getFailureCount());
+}
+
+TestSuite twoTestsSuite("twoTestsSuite");
+
+test(testOne) {
+}
+
+test(testTwo) {
+}
+
+testInSuite(twoTestsSuite, suite) {
+    runSuite(twoTestsSuite);
+
+    assertEquals(2, twoTestsSuite.getTestCount());
+    assertEquals(2, twoTestsSuite.getSuccessCount());
+    assertEquals(0, twoTestsSuite.getFailureCount());
+}
+
+TestSuite twoTestsOneFailingOneSucceeding("twoTestsOneFailingOneSucceeding");
+
+test(testOneFailing) {
+    assertEquals(1, 5);
+}
+
+test(testTwoSucceeding) {
+    assertEquals(44, 44);
+}
+
+testInSuite(twoTestsOneFailingOneSucceeding, suite) {
+    runSuite(twoTestsOneFailingOneSucceeding);
+
+    assertEquals(2, twoTestsOneFailingOneSucceeding.getTestCount());
+    assertEquals(1, twoTestsOneFailingOneSucceeding.getSuccessCount());
+    assertEquals(1, twoTestsOneFailingOneSucceeding.getFailureCount());
+}
+
+// Failure manifests as compilation error: declaration of 'int test' shadows a parameter
+testInSuite(variableNamedTestOk, suite) {
+    int test = 0;
+}
+
+testInSuite(variableNamedSuiteOk, suite) {
+    int suite = 0;
+}
+
+class ReporterSpy : public Reporter {
+public:
+    void begin(const char* name) { suiteName = name; }
+    void reportFailure(const Test& test, int lineNumber) { failedTest = &test; failedLineNumber = lineNumber; }
+    void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual) { 
+        equalityFailedTest = &test; equalityFailedLineNumber = lineNumber; equalityFailedExpected = expected; equalityFailedActual = actual; }
+    void reportComplete(const TestSuite& suite) { completeSuite = &suite; }
+    
+    const char* suiteName;
+    const Test* failedTest;
+    int failedLineNumber;
+    const Test* equalityFailedTest;
+    int equalityFailedLineNumber;
+    const char* equalityFailedExpected;
+    const char* equalityFailedActual;
+    const TestSuite* completeSuite;
+};
+
+testInSuite(noNameReported, suite) {
+    TestSuite noName;
+    ReporterSpy reporterSpy;
+    noName.setReporter(reporterSpy);
+
+    noName.run();
+
+    assertEquals(0, strlen(reporterSpy.suiteName));
+}
+
+testInSuite(nameReported, suite) {
+    const char* name = "name";
+    TestSuite named(name);
+    ReporterSpy reporterSpy;
+    named.setReporter(reporterSpy);
+
+    named.run();
+
+    assertStringsEqual(__test__, name, reporterSpy.suiteName);
+}
+
+TestSuite failureReported;
+
+test(failureReportedTest) {
+    assertTrue(false); // Line 244 (changing this will break the following test)
+}
+
+testInSuite(failuredReported, suite) {
+    ReporterSpy reporterSpy;
+    failureReported.setReporter(reporterSpy);
+
+    failureReported.run();
+    
+    assertStringsEqual(__test__, "failureReportedTest", reporterSpy.failedTest->name);
+    assertEquals(244, reporterSpy.failedLineNumber);
+}
+
+TestSuite equalityFailureReported;
+
+test(equalityFailureReportedTest) {
+    assertEquals(17, 63); // Line 260 (changing this will break the following test)
+}
+
+testInSuite(equalityFailureReported, suite) {
+    ReporterSpy reporterSpy;
+    equalityFailureReported.setReporter(reporterSpy);
+    
+    equalityFailureReported.run();
+
+    assertStringsEqual(__test__, "equalityFailureReportedTest", reporterSpy.equalityFailedTest->name);
+    assertEquals(260, reporterSpy.equalityFailedLineNumber);
+    assertStringsEqual(__test__, "17", reporterSpy.equalityFailedExpected);
+    assertStringsEqual(__test__, "63", reporterSpy.equalityFailedActual);
+}
+
+TestSuite completeReported("completeReportedName");
+
+testInSuite(completeReported, suite) {
+    ReporterSpy reporterSpy;
+    completeReported.setReporter(reporterSpy);
+    
+    completeReported.run();
+    
+    assertStringsEqual(__test__, "completeReportedName", reporterSpy.completeSuite->getName());
+}
+
+void assertStringsEqual(Test& __test__, const char* expected, const char* actual) {
+    assertEquals(strlen(expected), strlen(actual));
+    for (int i = 0; i < strlen(expected); i++) {
+        assertEquals(expected[i], actual[i]);
+    } 
+}

@@ -42,7 +42,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #define testInSuite(name, suite)\
     void test_##name(Test&);\
     SuiteAppender test_##name##_appender(suite, #name, test_##name);\
-    void test_##name(Test& test)
+    void test_##name(Test& __test__)
 
 /**
  * Asserts that a condition is true in the active test suite.
@@ -52,7 +52,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * @param condition boolean condition to check
  */
 #define assertTrue(condition)\
-    test.suite->suiteAssertTrue(test, (condition), __LINE__);\
+    __test__.suite->suiteAssertTrue(__test__, (condition), __LINE__);\
     if (!(condition)) {\
         return;\
     }
@@ -66,7 +66,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * @param actual actual value
  */
 #define assertEquals(expected, actual)\
-    test.suite->suiteAssertEquals(test, (expected), (actual), __LINE__);\
+    __test__.suite->suiteAssertEquals(__test__, (expected), (actual), __LINE__);\
     if ((expected) != (actual)) {\
         return;\
     }
