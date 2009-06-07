@@ -129,7 +129,7 @@ FAQ
 Version History
 ---------------
 
-Version 1.4 (07 June 2009)
+Version 1.4 (?? June 2009)
     Features added:
         Reduction in the SRAM heap space required when running named suites by forcing
         names to be defined in the program memory area (note this change breaks source 
