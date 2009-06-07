@@ -25,17 +25,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 
 #include "HardwareSerial.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 SerialReporter serialReporter;
 
 SerialReporter::SerialReporter(int baud) : baudRate(baud) {
 }
 
-void SerialReporter::begin(const char* name) {
+void SerialReporter::begin(TestSuiteName name) {
     Serial.begin(baudRate);
     Serial.print("Running test suite");
-    if (name[0] != 0) {
+
+#ifdef ARDUINO_UNIT_COMPAT_1_3
+    if (strcmp(TEST_SUITE_NO_NAME, name) != 0) {
+#else // !ARDUINO_UNIT_COMPAT_1_3
+    if (name != TEST_SUITE_NO_NAME) {
+#endif // ARDUINO_UNIT_COMPAT_1_3
+
         Serial.print(" '");
+
+#ifdef ARDUINO_UNIT_COMPAT_1_3
         Serial.print(name);
+#else // !ARDUINO_UNIT_COMPAT_1_3
+        char* strName = (char*) malloc(sizeof(char) * (strlen_P(name)+1));
+        if (strName != NULL) {
+            strcpy_P(strName, name);
+            Serial.print(strName);
+            free(strName);
+        } else {
+            Serial.print("<unknown>");
+        }
+#endif // ARDUINO_UNIT_COMPAT_1_3
+
         Serial.print("'");
     }
     Serial.println("...");
@@ -67,4 +89,9 @@ void SerialReporter::reportComplete(const TestSuite& suite) {
     Serial.print(suite.getSuccessCount());
     Serial.print(" Failed: ");
     Serial.println(suite.getFailureCount());
+}
+
+void SerialReporter::fatal(const char* message) {
+    Serial.begin(baudRate);
+    Serial.println(message);
 }

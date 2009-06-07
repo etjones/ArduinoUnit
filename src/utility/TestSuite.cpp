@@ -25,7 +25,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 struct TestLink {
     Test test;
@@ -34,15 +33,25 @@ struct TestLink {
 
 TestSuite* TestSuite::activeSuite = NULL;
 
-TestSuite::TestSuite(const char* nameToCopy) :
-    head(NULL), successCount(0), failureCount(0), completed(false) {
+TestSuite::TestSuite(TestSuiteName suiteName) {
 
-    name = (char*) malloc(sizeof(char) * (strlen(nameToCopy)+1));
-    strcpy(name, nameToCopy);
+#ifdef ARDUINO_UNIT_COMPAT_1_3
+    name = (char*) malloc(sizeof(char) * (strlen(suiteName)+1));
+    if (name != NULL) {
+        strcpy(name, suiteName);
+    } else {
+        reporter->fatal("Unable to allocate memory for suite name");
+    }
+#else // !ARDUINO_UNIT_COMPAT_1_3
+    name = suiteName;
+#endif // ARDUINO_UNIT_COMPAT_1_3
 
-    TestSuite::setActiveSuite(*this);
-
+    head = NULL;
+    successCount = 0;
+    failureCount = 0;
+    completed = false;
     setReporter(serialReporter);
+    TestSuite::setActiveSuite(*this);
 }
 
 TestSuite::~TestSuite() {
@@ -52,6 +61,10 @@ TestSuite::~TestSuite() {
         free(current);
         current = next;
     }
+
+#ifdef ARDUINO_UNIT_COMPAT_1_3
+    free(name);
+#endif // ARDUINO_UNIT_COMPAT_1_3
 }
 
 bool TestSuite::isActiveSuite() {
@@ -66,7 +79,7 @@ void TestSuite::setActiveSuite(TestSuite& suite) {
     TestSuite::activeSuite = &suite;
 }
 
-const char* TestSuite::getName() const {
+TestSuiteName TestSuite::getName() const {
     return name;
 }
 
@@ -80,26 +93,30 @@ void TestSuite::setReporter(Reporter& reporter_) {
 
 void TestSuite::add(const char* name, void (*testFunction)(Test&)) {
     TestLink* newLink = (TestLink*) malloc(sizeof(TestLink));
-    newLink->test.suite = this;
-    newLink->test.testFunction = testFunction;
-    newLink->test.name = name;
-    // Default to true so that a test with no assertions doesn't cause failure
-    newLink->test.successful = true;
-    newLink->next = NULL;
+    if (newLink != NULL) {
+        newLink->test.suite = this;
+        newLink->test.testFunction = testFunction;
+        newLink->test.name = name;
+        // Default to true so that a test with no assertions doesn't cause failure
+        newLink->test.successful = true;
+        newLink->next = NULL;
 
-    TestLink** newTail;
-    if (head == NULL) {
-      newTail = &head;
-    } else {
-        TestLink* tail = head;
-        while (tail->next != NULL) {
-            tail = tail->next;
+        TestLink** newTail;
+        if (head == NULL) {
+            newTail = &head;
+        } else {
+            TestLink* tail = head;
+            while (tail->next != NULL) {
+                tail = tail->next;
+            }
+            newTail = &(tail->next);
         }
-        newTail = &(tail->next);
-    }
 
-    *newTail = newLink;
-    successCount++;
+        *newTail = newLink;
+        successCount++;
+    } else {
+        reporter->fatal("Unable to allocate memory for test");
+    }
 }
 
 int TestSuite::getTestCount() const {
@@ -143,9 +160,8 @@ int adjustLineNumber(int lineNumber) {
 }
 
 void TestSuite::suiteAssertTrue(Test& test, bool condition, int lineNumber) {
-    test.successful = condition;
-
-    if (!condition) {
+    if (!condition && test.successful) {
+        test.successful = false;
         successCount--;
         failureCount++;
         reporter->reportFailure(test, adjustLineNumber(lineNumber));
@@ -154,14 +170,20 @@ void TestSuite::suiteAssertTrue(Test& test, bool condition, int lineNumber) {
 
 void TestSuite::suiteAssertEquals(Test& test, int expected, int actual, int lineNumber) {
     bool areEqual = (expected == actual);
-    test.successful = areEqual;
-    if (!areEqual) {
+    if (!areEqual && test.successful) {
+        test.successful = false;
         successCount--;
         failureCount++;
         char expectedBuffer[11];
         char actualBuffer[11];
-        sprintf(expectedBuffer, "%d", expected);
-        sprintf(actualBuffer, "%d", actual);
+
+        // TODO MM Is this initialization necessary?
+        for (int i = 0; i < 11; i++) {
+            expectedBuffer[i] = '\0';
+            actualBuffer[i] = '\0';
+        }
+        itoa(expected, expectedBuffer, 10);
+        itoa(actual, actualBuffer, 10);
         reporter->reportEqualityFailure(test, adjustLineNumber(lineNumber), expectedBuffer, actualBuffer);
     }
 }

@@ -18,39 +18,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 */
-#ifndef SERIAL_REPORTER_H
-#define SERIAL_REPORTER_H
+#include "TestSuiteName.h"
 
-#include "Reporter.h"
+#ifdef ARDUINO_UNIT_COMPAT_1_3
 
-/**
- * Reports test suite outcomes by printing messages with Serial.
- *
- * @author Matthew Murdoch
- */
-class SerialReporter : public Reporter {
-public:
+    TestSuiteName TEST_SUITE_NO_NAME = "";
+
+#else // !ARDUINO_UNIT_COMPAT_1_3
+
     /**
-     * Creates a serial suite test reporter.
-     *
-     * @param baudRate baud rate (bits per second) to use
+     * This is defined in a 'C' file rather than a 'CPP' file to prevent compiler
+     * warnings of the form:
+     *   'only initialized variables can be placed into program memory area'
      */
-    SerialReporter(int baudRate = 9600);
+    char TEST_SUITE_NO_NAME[] PROGMEM = "";
 
-    void begin(TestSuiteName name);
-
-    void reportFailure(const Test& test, int lineNumber);
-
-    void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual);
-
-    void reportComplete(const TestSuite& suite);
-
-    void fatal(const char* message);
-
-private:
-    int baudRate;
-};
-
-extern SerialReporter serialReporter;
-
-#endif // SERIAL_REPORTER_H
+#endif // ARDUINO_UNIT_COMPAT_1_3

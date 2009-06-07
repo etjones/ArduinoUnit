@@ -18,6 +18,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 */
+/**
+ * The main unit tests for ArduinoUnit.
+ * TODO Split compatibility tests into a separate test.
+ *
+ * @author Matthew Murdoch
+ */
 #include <ArduinoUnit.h>
 #include <utility/Reporter.h>
 
@@ -25,7 +31,7 @@ void assertStringsEqual(Test& __test__, const char* expected, const char* actual
 
 class NonReportingReporter : public Reporter {
 public:
-    void begin(const char* /*name*/) { }
+    void begin(TestSuiteName /*name*/) { }
     void reportFailure(const Test& /*test*/, int /*lineNumber*/) { }
     void reportEqualityFailure(const Test& /*test*/, int /*lineNumber*/, const char* /*expected*/, const char* /*actual*/) { }
     void reportComplete(const TestSuite& /*suite*/) { }
@@ -33,7 +39,12 @@ public:
 
 NonReportingReporter nonReportingReporter;
 
+#ifdef ARDUINO_UNIT_COMPAT_1_3
 TestSuite suite("main");
+#else // !ARDUINO_UNIT_COMPAT_1_3
+char mainSuiteName[] PROGMEM = "main";
+TestSuite suite(mainSuiteName);
+#endif // ARDUINO_UNIT_COMPAT_1_3
 
 void setup() {
 }
@@ -47,7 +58,7 @@ void runSuite(TestSuite& aSuite) {
     aSuite.run();
 }
 
-TestSuite empty("empty");
+TestSuite empty;
 
 testInSuite(emptySuite, suite) {
     runSuite(empty);
@@ -57,7 +68,7 @@ testInSuite(emptySuite, suite) {
     assertEquals(0, empty.getFailureCount());
 }
 
-TestSuite noAssertions("noAssertions");
+TestSuite noAssertions;
 
 test(noAssertions) {
 }
@@ -70,7 +81,7 @@ testInSuite(singleTestNoAssertions, suite) {
     assertEquals(0, noAssertions.getFailureCount());
 }
 
-TestSuite singleSuccessfulAssertion("singleSuccessfulAssertion");
+TestSuite singleSuccessfulAssertion;
 
 test(singleSuccessful) {
     assertTrue(true);
@@ -84,7 +95,7 @@ testInSuite(singleSuccessfulAssertion, suite) {
     assertEquals(0, singleSuccessfulAssertion.getFailureCount());
 }
 
-TestSuite singleFailingAssertion("singleFailingAssertion");
+TestSuite singleFailingAssertion;
 
 test(singleFailing) {
     assertTrue(false);
@@ -98,7 +109,7 @@ testInSuite(singleFailingAssertion, suite) {
     assertEquals(1, singleFailingAssertion.getFailureCount());
 }
 
-TestSuite failBeforeSuccessFails("failBeforeSuccessFails");
+TestSuite failBeforeSuccessFails;
 
 test(failBeforeSuccess) {
     assertTrue(false);
@@ -113,7 +124,7 @@ testInSuite(failBeforeSuccessFails, suite) {
     assertEquals(1, failBeforeSuccessFails.getFailureCount());
 }
 
-TestSuite singleSuccessfulEqualityAssertion("singleSuccessfulEqualityAssertion");
+TestSuite singleSuccessfulEqualityAssertion;
 
 test(singleSuccessfulEquality) {
     assertEquals(15, 15);
@@ -127,7 +138,7 @@ testInSuite(singleSuccessfulEqualityAssertion, suite) {
     assertEquals(0, singleSuccessfulEqualityAssertion.getFailureCount());
 }
 
-TestSuite singleFailingEqualityAssertion("singleFailingEqualityAssertion");
+TestSuite singleFailingEqualityAssertion;
 
 test(singleFailingEquality) {
     assertEquals(0, 1);
@@ -141,7 +152,7 @@ testInSuite(singleFailingEqualityAssertion, suite) {
     assertEquals(1, singleFailingEqualityAssertion.getFailureCount());
 }
 
-TestSuite equalityFailBeforeSuccessFails("equalityFailBeforeSuccessFails");
+TestSuite equalityFailBeforeSuccessFails;
 
 test(equalityFailBeforeSuccess) {
     assertEquals(87, 88);
@@ -156,7 +167,7 @@ testInSuite(equalityFailBeforeSuccessFails, suite) {
     assertEquals(1, equalityFailBeforeSuccessFails.getFailureCount());
 }
 
-TestSuite twoTestsSuite("twoTestsSuite");
+TestSuite twoTestsSuite;
 
 test(testOne) {
 }
@@ -172,7 +183,7 @@ testInSuite(twoTestsSuite, suite) {
     assertEquals(0, twoTestsSuite.getFailureCount());
 }
 
-TestSuite twoTestsOneFailingOneSucceeding("twoTestsOneFailingOneSucceeding");
+TestSuite twoTestsOneFailingOneSucceeding;
 
 test(testOneFailing) {
     assertEquals(1, 5);
@@ -201,13 +212,13 @@ testInSuite(variableNamedSuiteOk, suite) {
 
 class ReporterSpy : public Reporter {
 public:
-    void begin(const char* name) { suiteName = name; }
+    void begin(TestSuiteName name) { suiteName = name; }
     void reportFailure(const Test& test, int lineNumber) { failedTest = &test; failedLineNumber = lineNumber; }
     void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual) { 
         equalityFailedTest = &test; equalityFailedLineNumber = lineNumber; equalityFailedExpected = expected; equalityFailedActual = actual; }
     void reportComplete(const TestSuite& suite) { completeSuite = &suite; }
     
-    const char* suiteName;
+    TestSuiteName suiteName;
     const Test* failedTest;
     int failedLineNumber;
     const Test* equalityFailedTest;
@@ -224,7 +235,11 @@ testInSuite(noNameReported, suite) {
 
     noName.run();
 
+#ifdef ARDUINO_UNIT_COMPAT_1_3
     assertEquals(0, strlen(reporterSpy.suiteName));
+#else // !ARDUINO_UNIT_COMPAT_1_3
+    assertEquals(0, strlen_P(reporterSpy.suiteName));
+#endif // ARDUINO_UNIT_COMPAT_1_3
 }
 
 testInSuite(nameReported, suite) {
@@ -241,7 +256,7 @@ testInSuite(nameReported, suite) {
 TestSuite failureReported;
 
 test(failureReportedTest) {
-    assertTrue(false); // Line 244 (changing this will break the following test)
+    assertTrue(false); // Line 259 (changing this will break the following test)
 }
 
 testInSuite(failuredReported, suite) {
@@ -249,15 +264,15 @@ testInSuite(failuredReported, suite) {
     failureReported.setReporter(reporterSpy);
 
     failureReported.run();
-    
+
     assertStringsEqual(__test__, "failureReportedTest", reporterSpy.failedTest->name);
-    assertEquals(244, reporterSpy.failedLineNumber);
+    assertEquals(259, reporterSpy.failedLineNumber);
 }
 
 TestSuite equalityFailureReported;
 
 test(equalityFailureReportedTest) {
-    assertEquals(17, 63); // Line 260 (changing this will break the following test)
+    assertEquals(17, 63); // Line 275 (changing this will break the following test)
 }
 
 testInSuite(equalityFailureReported, suite) {
@@ -267,20 +282,77 @@ testInSuite(equalityFailureReported, suite) {
     equalityFailureReported.run();
 
     assertStringsEqual(__test__, "equalityFailureReportedTest", reporterSpy.equalityFailedTest->name);
-    assertEquals(260, reporterSpy.equalityFailedLineNumber);
+    assertEquals(275, reporterSpy.equalityFailedLineNumber);
     assertStringsEqual(__test__, "17", reporterSpy.equalityFailedExpected);
     assertStringsEqual(__test__, "63", reporterSpy.equalityFailedActual);
 }
 
+#ifdef ARDUINO_UNIT_COMPAT_1_3
 TestSuite completeReported("completeReportedName");
+#else // !ARDUINO_UNIT_COMPAT_1_3
+char completeReportedNameSuiteName[] PROGMEM = "completeReportedName";
+TestSuite completeReported(completeReportedNameSuiteName);
+#endif // ARDUINO_UNIT_COMPAT_1_3
 
 testInSuite(completeReported, suite) {
     ReporterSpy reporterSpy;
     completeReported.setReporter(reporterSpy);
     
     completeReported.run();
+
+#ifdef ARDUINO_UNIT_COMPAT_1_3
+    const char* strName = reporterSpy.completeSuite->getName();
+#else // !ARDUINO_UNIT_COMPAT_1_3
+    PGM_P name = reporterSpy.completeSuite->getName();
+    char* strName = (char*) malloc(sizeof(char) * (strlen_P(name)+1));
+    assertTrue(strName != NULL);
+    strcpy_P(strName, name);
+#endif // ARDUINO_UNIT_COMPAT_1_3
+    assertStringsEqual(__test__, "completeReportedName", strName);
+
+#ifndef ARDUINO_UNIT_COMPAT_1_3
+    free(strName);
+#endif // !ARDUINO_UNIT_COMPAT_1_3
+}
+
+TestSuite nestedAssertionFailures;
+
+void fail(Test& __test__) {
+    assertTrue(false);
+}
+
+test(nestedAssertionFailuresTest) {
+    fail(__test__);
+    fail(__test__);
+}
+
+testInSuite(nestedAssertionFailures, suite) {
+    ReporterSpy reporterSpy;
+    nestedAssertionFailures.setReporter(reporterSpy);
     
-    assertStringsEqual(__test__, "completeReportedName", reporterSpy.completeSuite->getName());
+    nestedAssertionFailures.run();
+    
+    assertEquals(1, reporterSpy.completeSuite->getFailureCount());
+}
+
+TestSuite nestedEqualityAssertionFailures;
+
+void failEquality(Test& __test__) {
+    assertEquals(1, 2);
+}
+
+test(nestedEqualityAssertionFailuresTest) {
+    failEquality(__test__);
+    failEquality(__test__);
+}
+
+testInSuite(nestedEqualityAssertionFailures, suite) {
+    ReporterSpy reporterSpy;
+    nestedEqualityAssertionFailures.setReporter(reporterSpy);
+    
+    nestedEqualityAssertionFailures.run();
+    
+    assertEquals(1, reporterSpy.completeSuite->getFailureCount());
 }
 
 void assertStringsEqual(Test& __test__, const char* expected, const char* actual) {

@@ -18,39 +18,25 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 */
-#ifndef SERIAL_REPORTER_H
-#define SERIAL_REPORTER_H
+#ifndef TEST_SUITE_NO_NAME_H
+#define TEST_SUITE_NO_NAME_H
 
-#include "Reporter.h"
+#include "Compatibility.h"
 
-/**
- * Reports test suite outcomes by printing messages with Serial.
- *
- * @author Matthew Murdoch
- */
-class SerialReporter : public Reporter {
-public:
-    /**
-     * Creates a serial suite test reporter.
-     *
-     * @param baudRate baud rate (bits per second) to use
-     */
-    SerialReporter(int baudRate = 9600);
+#ifdef ARDUINO_UNIT_COMPAT_1_3
 
-    void begin(TestSuiteName name);
+    #define TestSuiteName const char*
 
-    void reportFailure(const Test& test, int lineNumber);
+    extern TestSuiteName TEST_SUITE_NO_NAME;
 
-    void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual);
+#else // !ARDUINO_UNIT_COMPAT_1_3
 
-    void reportComplete(const TestSuite& suite);
+    #include <avr/pgmspace.h>
 
-    void fatal(const char* message);
+    #define TestSuiteName PGM_P
 
-private:
-    int baudRate;
-};
+    extern char TEST_SUITE_NO_NAME[] PROGMEM;
 
-extern SerialReporter serialReporter;
+#endif // ARDUINO_UNIT_COMPAT_1_3
 
-#endif // SERIAL_REPORTER_H
+#endif // TEST_SUITE_NO_NAME_H

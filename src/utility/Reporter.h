@@ -21,6 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #ifndef REPORTER_H
 #define REPORTER_H
 
+#include "TestSuiteName.h"
+
 class Test;
 class TestSuite;
 
@@ -41,7 +43,7 @@ public:
      *
      * @param name name of test suite on which to report
      */
-    virtual void begin(const char* name) = 0;
+    virtual void begin(TestSuiteName name) = 0;
 
     /**
      * Reports on a test failure.
@@ -67,6 +69,13 @@ public:
      * @param suite test suite on which to report
      */
     virtual void reportComplete(const TestSuite& suite) = 0;
+
+    /**
+     * Reports on a fatal error.
+     *
+     * @param message the error message to report
+     */
+    virtual void fatal(const char* message) { }
 };
 
 #endif // REPORTER_H

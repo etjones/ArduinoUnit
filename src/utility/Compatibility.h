@@ -18,39 +18,22 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 */
-#ifndef SERIAL_REPORTER_H
-#define SERIAL_REPORTER_H
-
-#include "Reporter.h"
+#ifndef COMPATIBILITY_H
+#define COMPATIBILITY_H
 
 /**
- * Reports test suite outcomes by printing messages with Serial.
+ * Configuration file for ArduinoUnit backward compatibility modes.
  *
  * @author Matthew Murdoch
  */
-class SerialReporter : public Reporter {
-public:
-    /**
-     * Creates a serial suite test reporter.
-     *
-     * @param baudRate baud rate (bits per second) to use
-     */
-    SerialReporter(int baudRate = 9600);
 
-    void begin(TestSuiteName name);
+/**
+ * ArduinoUnit 1.3 compatibility mode. Uncomment this to use const char* strings
+ * as TestSuite names. Without this compatibility mode defined TestSuite names
+ * must be strings placed in program memory (typed as PGM_P). This change was made
+ * to reduce SRAM memory consumption (boards with ATMega168 have 1K and
+ * ATMega328 have 2K SRAM).
+ */
+//#define ARDUINO_UNIT_COMPAT_1_3
 
-    void reportFailure(const Test& test, int lineNumber);
-
-    void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual);
-
-    void reportComplete(const TestSuite& suite);
-
-    void fatal(const char* message);
-
-private:
-    int baudRate;
-};
-
-extern SerialReporter serialReporter;
-
-#endif // SERIAL_REPORTER_H
+#endif // COMPATIBILITY_H

@@ -18,39 +18,59 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 */
-#ifndef SERIAL_REPORTER_H
-#define SERIAL_REPORTER_H
-
-#include "Reporter.h"
-
 /**
- * Reports test suite outcomes by printing messages with Serial.
+ * These tests are all expected to fail. This sketch has been added to validate
+ * that assertions fail when they are supposed to. To ensure that they are
+ * correctly failing validation of these tests must be done *without* using
+ * ArduinoUnit.
  *
  * @author Matthew Murdoch
  */
-class SerialReporter : public Reporter {
-public:
-    /**
-     * Creates a serial suite test reporter.
-     *
-     * @param baudRate baud rate (bits per second) to use
-     */
-    SerialReporter(int baudRate = 9600);
+#include <ArduinoUnit.h>
 
-    void begin(TestSuiteName name);
+TestSuite suite;
 
-    void reportFailure(const Test& test, int lineNumber);
+void setup() {
+}
 
-    void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual);
+test(failingAssertion) {
+    assertTrue(false);
+}
 
-    void reportComplete(const TestSuite& suite);
+test(failingEqualityAssertion) {
+    assertEquals(0, 1);
+}
 
-    void fatal(const char* message);
+test(failingAssertionAfterSuccess) {
+    assertTrue(true);
+    assertTrue(false);
+}
 
-private:
-    int baudRate;
-};
+test(failingEqualityAssertionAfterSuccess) {
+    assertEquals(0, 0);
+    assertEquals(0, 1);
+}
 
-extern SerialReporter serialReporter;
+test(twoFailingAssertions) {
+    assertTrue(false);
+    assertTrue(false);
+}
 
-#endif // SERIAL_REPORTER_H
+test(twoFailingEqualityAssertions) {
+    assertEquals(0, 1);
+    assertEquals(0, 1);
+}
+
+test(failingAssertionAfterSuccessfulEqualityAssertion) {
+    assertEquals(0, 0);
+    assertTrue(false);
+}
+
+test(failingEqualityAssertionAfterSuccessfulAssertion) {
+    assertTrue(true);
+    assertEquals(0, 1);
+}
+
+void loop() {
+    suite.run();
+}
