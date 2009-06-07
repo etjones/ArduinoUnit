@@ -82,12 +82,12 @@ FAQ
           }
           
       and are trying to use it like this from within a test function:
-       
+
           assertStringsEqual("expected string", actualString);
-          
+
       To fix this you need to add a 'Test& __test__' parameter to the signature of the custom 
       assertion function, for example:
-      
+
           void assertStringsEqual(Test& __test__, const char* expected, const char* actual) {
               assertEquals(strlen(expected), strlen(actual));
               for (int i = 0; i < strlen(expected); i++) {
@@ -96,7 +96,7 @@ FAQ
           }
 
       and add '__test__' as the relevant argument when you call it, for example:
-      
+
           assertStringsEqual(__test__, "expected string", actualString);
 
 4. Q. I'm trying to use a custom assertion function but I keep getting an error message like:
@@ -105,17 +105,17 @@ FAQ
 
    A. You need to define the custom assertion function above where it is being used or 
         forward-declare it, for example:
-        
+
           // Forward declare custom assertion
           void assertStringsEqual(Test& __test__, const char* expected, const char* actual);
 
           // ...
-          
+
           test(something) {
               // Use custom assertion
               assertStringsEqual(__test__, "expected string", actualString);
           }
-          
+
           // ...
 
           // Define custom assertion
@@ -182,6 +182,7 @@ Version 1.2 (29 May 2009)
             Running a test suite        132             120           12
             -----------------------    ------------    ----------    -----------------
             Total                      2912            2800          112
+
     Bugs fixed:
         Using Sketch | Import Library | ArduinoUnit #includes all the header files in the 
           ArduinoUnit directory rather than just ArduinoUnit.h

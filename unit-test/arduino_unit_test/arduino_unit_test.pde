@@ -39,12 +39,8 @@ public:
 
 NonReportingReporter nonReportingReporter;
 
-#ifdef ARDUINO_UNIT_COMPAT_1_3
-TestSuite suite("main");
-#else // !ARDUINO_UNIT_COMPAT_1_3
 char mainSuiteName[] PROGMEM = "main";
 TestSuite suite(mainSuiteName);
-#endif // ARDUINO_UNIT_COMPAT_1_3
 
 void setup() {
 }
@@ -235,11 +231,7 @@ testInSuite(noNameReported, suite) {
 
     noName.run();
 
-#ifdef ARDUINO_UNIT_COMPAT_1_3
-    assertEquals(0, strlen(reporterSpy.suiteName));
-#else // !ARDUINO_UNIT_COMPAT_1_3
     assertEquals(0, strlen_P(reporterSpy.suiteName));
-#endif // ARDUINO_UNIT_COMPAT_1_3
 }
 
 testInSuite(nameReported, suite) {
@@ -256,7 +248,7 @@ testInSuite(nameReported, suite) {
 TestSuite failureReported;
 
 test(failureReportedTest) {
-    assertTrue(false); // Line 259 (changing this will break the following test)
+    assertTrue(false); // Line 251 (changing this will break the following test)
 }
 
 testInSuite(failuredReported, suite) {
@@ -266,13 +258,13 @@ testInSuite(failuredReported, suite) {
     failureReported.run();
 
     assertStringsEqual(__test__, "failureReportedTest", reporterSpy.failedTest->name);
-    assertEquals(259, reporterSpy.failedLineNumber);
+    assertEquals(251, reporterSpy.failedLineNumber);
 }
 
 TestSuite equalityFailureReported;
 
 test(equalityFailureReportedTest) {
-    assertEquals(17, 63); // Line 275 (changing this will break the following test)
+    assertEquals(17, 63); // Line 267 (changing this will break the following test)
 }
 
 testInSuite(equalityFailureReported, suite) {
@@ -282,17 +274,13 @@ testInSuite(equalityFailureReported, suite) {
     equalityFailureReported.run();
 
     assertStringsEqual(__test__, "equalityFailureReportedTest", reporterSpy.equalityFailedTest->name);
-    assertEquals(275, reporterSpy.equalityFailedLineNumber);
+    assertEquals(267, reporterSpy.equalityFailedLineNumber);
     assertStringsEqual(__test__, "17", reporterSpy.equalityFailedExpected);
     assertStringsEqual(__test__, "63", reporterSpy.equalityFailedActual);
 }
 
-#ifdef ARDUINO_UNIT_COMPAT_1_3
-TestSuite completeReported("completeReportedName");
-#else // !ARDUINO_UNIT_COMPAT_1_3
 char completeReportedNameSuiteName[] PROGMEM = "completeReportedName";
 TestSuite completeReported(completeReportedNameSuiteName);
-#endif // ARDUINO_UNIT_COMPAT_1_3
 
 testInSuite(completeReported, suite) {
     ReporterSpy reporterSpy;
@@ -300,19 +288,14 @@ testInSuite(completeReported, suite) {
     
     completeReported.run();
 
-#ifdef ARDUINO_UNIT_COMPAT_1_3
-    const char* strName = reporterSpy.completeSuite->getName();
-#else // !ARDUINO_UNIT_COMPAT_1_3
     PGM_P name = reporterSpy.completeSuite->getName();
     char* strName = (char*) malloc(sizeof(char) * (strlen_P(name)+1));
     assertTrue(strName != NULL);
     strcpy_P(strName, name);
-#endif // ARDUINO_UNIT_COMPAT_1_3
+
     assertStringsEqual(__test__, "completeReportedName", strName);
 
-#ifndef ARDUINO_UNIT_COMPAT_1_3
     free(strName);
-#endif // !ARDUINO_UNIT_COMPAT_1_3
 }
 
 TestSuite nestedAssertionFailures;
