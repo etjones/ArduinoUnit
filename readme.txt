@@ -128,7 +128,7 @@ FAQ
 
 Version History
 ---------------
-Version 1.4 (?? June 2009)
+Version 1.4 (28 June 2009)
     Features added:
         Checks and reporting on heap allocation failures.
 
