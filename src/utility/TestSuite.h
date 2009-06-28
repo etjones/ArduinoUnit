@@ -21,8 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #ifndef TEST_SUITE_H
 #define TEST_SUITE_H
 
-#include "TestSuiteName.h"
-
 struct Test;
 struct TestLink;
 class Reporter;
@@ -35,11 +33,12 @@ class Reporter;
 class TestSuite {
 public:
     /**
-     * Creates a test suite and sets it as the active suite.
+     * Creates a test suite and sets it as the active suite if there is no
+     * currently active suite.
      *
-     * @param name the name of the test suite
+     * @param name the name of this test suite (optional, defaults to empty string)
      */
-    TestSuite(TestSuiteName name = TEST_SUITE_NO_NAME);
+    TestSuite(const char* name = "");
 
     /**
      * Destroys this test suite.
@@ -73,7 +72,7 @@ public:
      *
      * @return test suite name
      */
-    TestSuiteName getName() const;
+    const char* getName() const;
 
     /**
      * Returns the reporter which reports on the outcome of this suite.
@@ -100,8 +99,10 @@ public:
     /**
      * Runs this test suite. If this suite has already run calling
      * this function has no effect.
+     *
+     * @return true if the run was successful, false if an internal error occurred
      */
-    void run();
+    bool run();
 
     /**
      * Returns whether or not this suite has finished running.
@@ -151,20 +152,19 @@ public:
     void suiteAssertEquals(Test& test, int first, int second, int lineNumber);
 
 private:
+    /**
+     * Adds a failure to this test suite.
+     */
+    void addFailure();
+
     static TestSuite* activeSuite;
 
-#ifdef ARDUINO_UNIT_COMPAT_1_3
-    // Storing this as a char* so that it can be deallocated. However, it is
-    // always passed around as a const char*
-    char*
-#else // !ARDUINO_UNIT_COMPAT_1_3
-    TestSuiteName
-#endif // ARDUINO_UNIT_COMPAT_1_3
-                  name;
+    char* name;
     TestLink* head;
     int successCount;
     int failureCount;
     bool completed;
+    bool error;
     Reporter* reporter;
 };
 

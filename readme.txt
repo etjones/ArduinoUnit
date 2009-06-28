@@ -82,12 +82,12 @@ FAQ
           }
           
       and are trying to use it like this from within a test function:
-
+       
           assertStringsEqual("expected string", actualString);
-
+          
       To fix this you need to add a 'Test& __test__' parameter to the signature of the custom 
       assertion function, for example:
-
+      
           void assertStringsEqual(Test& __test__, const char* expected, const char* actual) {
               assertEquals(strlen(expected), strlen(actual));
               for (int i = 0; i < strlen(expected); i++) {
@@ -96,7 +96,7 @@ FAQ
           }
 
       and add '__test__' as the relevant argument when you call it, for example:
-
+      
           assertStringsEqual(__test__, "expected string", actualString);
 
 4. Q. I'm trying to use a custom assertion function but I keep getting an error message like:
@@ -105,17 +105,17 @@ FAQ
 
    A. You need to define the custom assertion function above where it is being used or 
         forward-declare it, for example:
-
+        
           // Forward declare custom assertion
           void assertStringsEqual(Test& __test__, const char* expected, const char* actual);
 
           // ...
-
+          
           test(something) {
               // Use custom assertion
               assertStringsEqual(__test__, "expected string", actualString);
           }
-
+          
           // ...
 
           // Define custom assertion
@@ -128,18 +128,8 @@ FAQ
 
 Version History
 ---------------
-
 Version 1.4 (?? June 2009)
     Features added:
-        Reduction in the SRAM heap space required when running named suites by forcing
-        names to be defined in the program memory area (note this change breaks source 
-        compatibility of unit test sketches written against version 1.3 and earlier 
-        which use the named TestSuite feature).
-
-        Backward compatibility support (sketches which were written against version 1.3
-        and no longer compile due to the feature above can be fixed by uncommenting the 
-        ARDUINO_UNIT_COMPAT_1_3 definition in Compatiblity.h and recompiling the library).
-
         Checks and reporting on heap allocation failures.
 
         Example of using ArduinoUnit to check the correct functioning of digital I/O pins 2-13.

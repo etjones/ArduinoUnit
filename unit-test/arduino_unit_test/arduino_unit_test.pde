@@ -20,7 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 */
 /**
  * The main unit tests for ArduinoUnit.
- * TODO Split compatibility tests into a separate test.
  *
  * @author Matthew Murdoch
  */
@@ -31,7 +30,7 @@ void assertStringsEqual(Test& __test__, const char* expected, const char* actual
 
 class NonReportingReporter : public Reporter {
 public:
-    void begin(TestSuiteName /*name*/) { }
+    void begin(const char* /*name*/) { }
     void reportFailure(const Test& /*test*/, int /*lineNumber*/) { }
     void reportEqualityFailure(const Test& /*test*/, int /*lineNumber*/, const char* /*expected*/, const char* /*actual*/) { }
     void reportComplete(const TestSuite& /*suite*/) { }
@@ -39,8 +38,7 @@ public:
 
 NonReportingReporter nonReportingReporter;
 
-char mainSuiteName[] PROGMEM = "main";
-TestSuite suite(mainSuiteName);
+TestSuite suite("main");
 
 void setup() {
 }
@@ -208,13 +206,14 @@ testInSuite(variableNamedSuiteOk, suite) {
 
 class ReporterSpy : public Reporter {
 public:
-    void begin(TestSuiteName name) { suiteName = name; }
+    ReporterSpy() : suiteName("unitialized") { } 
+    void begin(const char* name) { suiteName = name; }
     void reportFailure(const Test& test, int lineNumber) { failedTest = &test; failedLineNumber = lineNumber; }
     void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual) { 
         equalityFailedTest = &test; equalityFailedLineNumber = lineNumber; equalityFailedExpected = expected; equalityFailedActual = actual; }
     void reportComplete(const TestSuite& suite) { completeSuite = &suite; }
     
-    TestSuiteName suiteName;
+    const char* suiteName;
     const Test* failedTest;
     int failedLineNumber;
     const Test* equalityFailedTest;
@@ -229,9 +228,9 @@ testInSuite(noNameReported, suite) {
     ReporterSpy reporterSpy;
     noName.setReporter(reporterSpy);
 
-    noName.run();
+    assertTrue(noName.run());
 
-    assertEquals(0, strlen_P(reporterSpy.suiteName));
+    assertStringsEqual(__test__, "", reporterSpy.suiteName);
 }
 
 testInSuite(nameReported, suite) {
@@ -240,7 +239,7 @@ testInSuite(nameReported, suite) {
     ReporterSpy reporterSpy;
     named.setReporter(reporterSpy);
 
-    named.run();
+    assertTrue(named.run());
 
     assertStringsEqual(__test__, name, reporterSpy.suiteName);
 }
@@ -248,7 +247,7 @@ testInSuite(nameReported, suite) {
 TestSuite failureReported;
 
 test(failureReportedTest) {
-    assertTrue(false); // Line 251 (changing this will break the following test)
+    assertTrue(false); // Line 250 (changing this will break the following test)
 }
 
 testInSuite(failuredReported, suite) {
@@ -256,15 +255,15 @@ testInSuite(failuredReported, suite) {
     failureReported.setReporter(reporterSpy);
 
     failureReported.run();
-
+    
     assertStringsEqual(__test__, "failureReportedTest", reporterSpy.failedTest->name);
-    assertEquals(251, reporterSpy.failedLineNumber);
+    assertEquals(250, reporterSpy.failedLineNumber);
 }
 
 TestSuite equalityFailureReported;
 
 test(equalityFailureReportedTest) {
-    assertEquals(17, 63); // Line 267 (changing this will break the following test)
+    assertEquals(17, 63); // Line 266 (changing this will break the following test)
 }
 
 testInSuite(equalityFailureReported, suite) {
@@ -274,28 +273,20 @@ testInSuite(equalityFailureReported, suite) {
     equalityFailureReported.run();
 
     assertStringsEqual(__test__, "equalityFailureReportedTest", reporterSpy.equalityFailedTest->name);
-    assertEquals(267, reporterSpy.equalityFailedLineNumber);
+    assertEquals(266, reporterSpy.equalityFailedLineNumber);
     assertStringsEqual(__test__, "17", reporterSpy.equalityFailedExpected);
     assertStringsEqual(__test__, "63", reporterSpy.equalityFailedActual);
 }
 
-char completeReportedNameSuiteName[] PROGMEM = "completeReportedName";
-TestSuite completeReported(completeReportedNameSuiteName);
+TestSuite completeReported("completeReportedName");
 
 testInSuite(completeReported, suite) {
     ReporterSpy reporterSpy;
     completeReported.setReporter(reporterSpy);
     
     completeReported.run();
-
-    PGM_P name = reporterSpy.completeSuite->getName();
-    char* strName = (char*) malloc(sizeof(char) * (strlen_P(name)+1));
-    assertTrue(strName != NULL);
-    strcpy_P(strName, name);
-
-    assertStringsEqual(__test__, "completeReportedName", strName);
-
-    free(strName);
+    
+    assertStringsEqual(__test__, "completeReportedName", reporterSpy.completeSuite->getName());
 }
 
 TestSuite nestedAssertionFailures;

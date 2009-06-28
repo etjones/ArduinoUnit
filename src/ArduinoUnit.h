@@ -26,12 +26,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #include "utility/SuiteAppender.h"
 
 /**
- * ArduinoUnit header file for importing through the IDE.
- *
- * @author Matthew Murdoch
- */
-
-/**
  * Defines a test function in the active test suite.
  *
  * @param name name of test function to define
@@ -51,8 +45,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     void test_##name(Test& __test__)
 
 /**
- * Asserts that a condition is true. If the condition is false the test
- * function ends prematurely and further assertions are not checked.
+ * Asserts that a condition is true in the active test suite.
+ * If the condition is false the test function ends prematurely
+ * and further assertions are not checked.
  *
  * @param condition boolean condition to check
  */
@@ -63,8 +58,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     }
 
 /**
- * Asserts that two values are equal. If the values differ the test function
- * ends prematurely and further assertions are not checked.
+ * Asserts that two values are equal in the active test suite.
+ * If the values differ the test function ends prematurely
+ * and further assertions are not checked.
  *
  * @param expected expected value
  * @param actual actual value

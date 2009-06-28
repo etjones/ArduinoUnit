@@ -37,15 +37,13 @@ public:
      */
     SerialReporter(int baudRate = 9600);
 
-    void begin(TestSuiteName name);
+    void begin(const char* name);
 
     void reportFailure(const Test& test, int lineNumber);
 
     void reportEqualityFailure(const Test& test, int lineNumber, const char* expected, const char* actual);
 
     void reportComplete(const TestSuite& suite);
-
-    void fatal(const char* message);
 
 private:
     int baudRate;

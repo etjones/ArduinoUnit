@@ -25,6 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 struct TestLink {
     Test test;
@@ -33,24 +34,18 @@ struct TestLink {
 
 TestSuite* TestSuite::activeSuite = NULL;
 
-TestSuite::TestSuite(TestSuiteName suiteName) {
+TestSuite::TestSuite(const char* nameToCopy) :
+    head(NULL), successCount(0), failureCount(0), completed(false), error(false) {
 
-#ifdef ARDUINO_UNIT_COMPAT_1_3
-    name = (char*) malloc(sizeof(char) * (strlen(suiteName)+1));
-    if (name != NULL) {
-        strcpy(name, suiteName);
+    name = (char*) malloc(strlen(nameToCopy) + 1);
+    if (name) {
+        strcpy(name, nameToCopy);
     } else {
-        reporter->fatal("Unable to allocate memory for suite name");
+        name = (char*) "";
     }
-#else // !ARDUINO_UNIT_COMPAT_1_3
-    name = suiteName;
-#endif // ARDUINO_UNIT_COMPAT_1_3
 
-    head = NULL;
-    successCount = 0;
-    failureCount = 0;
-    completed = false;
     setReporter(serialReporter);
+
     TestSuite::setActiveSuite(*this);
 }
 
@@ -61,10 +56,7 @@ TestSuite::~TestSuite() {
         free(current);
         current = next;
     }
-
-#ifdef ARDUINO_UNIT_COMPAT_1_3
     free(name);
-#endif // ARDUINO_UNIT_COMPAT_1_3
 }
 
 bool TestSuite::isActiveSuite() {
@@ -79,7 +71,7 @@ void TestSuite::setActiveSuite(TestSuite& suite) {
     TestSuite::activeSuite = &suite;
 }
 
-TestSuiteName TestSuite::getName() const {
+const char* TestSuite::getName() const {
     return name;
 }
 
@@ -115,7 +107,7 @@ void TestSuite::add(const char* name, void (*testFunction)(Test&)) {
         *newTail = newLink;
         successCount++;
     } else {
-        reporter->fatal("Unable to allocate memory for test");
+        error = true;
     }
 }
 
@@ -131,24 +123,27 @@ int TestSuite::getSuccessCount() const {
     return successCount;
 }
 
-void TestSuite::run() {
-    if (completed) {
-        return;
+bool TestSuite::run() {
+    if (error) {
+        return false;
     }
 
-    reporter->begin(name);
+    if (!completed) {
+        reporter->begin(name);
 
-    TestLink* current = head;
-    while (current != NULL) {
-      current->test.testFunction(current->test);
-      current = current->next;
+        TestLink* current = head;
+        while (current != NULL) {
+            current->test.testFunction(current->test);
+            current = current->next;
+        }
+
+        completed = true;
+
+        reporter->reportComplete(*this);
     }
 
-    completed = true;
-
-    reporter->reportComplete(*this);
+    return true;
 }
-
 bool TestSuite::hasCompleted() const {
     return completed;
 }
@@ -162,28 +157,41 @@ int adjustLineNumber(int lineNumber) {
 void TestSuite::suiteAssertTrue(Test& test, bool condition, int lineNumber) {
     if (!condition && test.successful) {
         test.successful = false;
-        successCount--;
-        failureCount++;
+        addFailure();
         reporter->reportFailure(test, adjustLineNumber(lineNumber));
     }
 }
+
+/**
+ * The maximum length (sign and digits) of a decimal integer.
+ */
+#define MAX_INTEGER_LENGTH 11
+
+/**
+ * Converts an integer to a string.
+ *
+ * @param integer integer to convert
+ * @param string character buffer to fill
+ */
+#define integerToString(integer, string) itoa((integer), (string), 10)
 
 void TestSuite::suiteAssertEquals(Test& test, int expected, int actual, int lineNumber) {
     bool areEqual = (expected == actual);
     if (!areEqual && test.successful) {
         test.successful = false;
-        successCount--;
-        failureCount++;
-        char expectedBuffer[11];
-        char actualBuffer[11];
+        addFailure();
 
-        // TODO MM Is this initialization necessary?
-        for (int i = 0; i < 11; i++) {
-            expectedBuffer[i] = '\0';
-            actualBuffer[i] = '\0';
-        }
-        itoa(expected, expectedBuffer, 10);
-        itoa(actual, actualBuffer, 10);
+        char expectedBuffer[MAX_INTEGER_LENGTH];
+        integerToString(expected, expectedBuffer);
+
+        char actualBuffer[MAX_INTEGER_LENGTH];
+        integerToString(actual, actualBuffer);
+
         reporter->reportEqualityFailure(test, adjustLineNumber(lineNumber), expectedBuffer, actualBuffer);
     }
+}
+
+void TestSuite::addFailure() {
+    successCount--;
+    failureCount++;
 }
