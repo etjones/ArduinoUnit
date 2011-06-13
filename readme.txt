@@ -1,4 +1,4 @@
-Create a directory called ArduinoUnit under <arduino installation directory>\hardware\libraries.
+Create a directory called ArduinoUnit under <arduino installation directory>\libraries.
 
 Copy everything from the src directory to this new directory.
 
@@ -24,10 +24,11 @@ For example, try this simple unit testing sketch:
         suite.run();
     }
 
-Upload this sketch to the Arduino (using the 'Upload to I/O Board' button, 
+Upload this sketch to the Arduino (using the 'Upload' button, 
   File | Upload to I/O Board or Ctrl+U).
 
-Turn on the Serial Monitor (using the 'Serial Monitor' button) and expect to see the following:
+Turn on the Serial Monitor (using the 'Serial Monitor' button, Tools | Serial Monitor or 
+  Ctrl+Shift+M) and expect to see the following:
 
     Running test suite...
     Tests run: 1 Successful: 1 Failed: 0
