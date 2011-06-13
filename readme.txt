@@ -128,6 +128,10 @@ FAQ
 
 Version History
 ---------------
+Version 1.4.1 (13 June 2011)
+    Bugs fixed:
+	    Issue 2 - Compilation error on Arduino 0022
+
 Version 1.4 (28 June 2009)
     Features added:
         Checks and reporting on heap allocation failures.
