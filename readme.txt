@@ -131,6 +131,7 @@ Version History
 Version 1.4.1 (13 June 2011)
     Bugs fixed:
 	    Issue 2 - Compilation error on Arduino 0022
+		Issue 3 - Incomplete MIT license terms
 
 Version 1.4 (28 June 2009)
     Features added:
