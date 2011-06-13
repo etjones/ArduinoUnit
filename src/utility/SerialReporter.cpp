@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #include "Test.h"
 #include "TestSuite.h"
 
+#include "WProgram.h"
 #include "HardwareSerial.h"
 
 SerialReporter serialReporter;
