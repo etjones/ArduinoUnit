@@ -24,8 +24,13 @@ THE SOFTWARE.
 #include "Test.h"
 #include "TestSuite.h"
 
-#include "WProgram.h"
-#include "HardwareSerial.h"
+#if (ARDUINO >= 100)
+#include <Arduino.h>
+#else
+#include <WProgram.h>
+#endif
+
+#include <HardwareSerial.h>
 
 SerialReporter serialReporter;
 
