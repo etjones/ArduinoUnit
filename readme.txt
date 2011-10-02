@@ -129,10 +129,14 @@ FAQ
 
 Version History
 ---------------
+Version 1.4.2 (2 October 2011)
+    Features added:
+        Support for Arduino 1.0 environment (check for arduino version to include correct header)
+
 Version 1.4.1 (13 June 2011)
     Bugs fixed:
 	    Issue 2 - Compilation error on Arduino 0022
-		Issue 3 - Incomplete MIT license terms
+        Issue 3 - Incomplete MIT license terms
 
 Version 1.4 (28 June 2009)
     Features added:
